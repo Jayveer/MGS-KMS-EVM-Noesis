@@ -15,9 +15,6 @@ void bindFace(int16_t* vertices, uint16_t fc, std::vector<uint16_t>& faceBuffer)
     faceBuffer.push_back(fa);
     faceBuffer.push_back(fb);
     faceBuffer.push_back(fc);
-    faceBuffer.push_back(fa);
-    faceBuffer.push_back(fc);
-    faceBuffer.push_back(fb);
 }
 
 inline
