@@ -8,6 +8,7 @@ This project uses Victor Suba's PS2 GS layout swizzling code I would like to tha
 ![picture](https://github.com/Jayveer/MGS-KMS-EVM-Noesis/blob/master/model.png?raw=true)
 
 ### Latest Changes
+ - Fixed Winding order
  - Fixed a problem where textures weren't auto applying on export
 
 ### To Do
