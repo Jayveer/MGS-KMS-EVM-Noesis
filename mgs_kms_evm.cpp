@@ -19,7 +19,6 @@ noesisModel_t* loadEVM(BYTE* fileBuffer, int bufferLen, int& numMdl, noeRAPI_t* 
     EvmVertexDefinition* vDef   = (EvmVertexDefinition*)&fileBuffer[header->vertexDefinitionOffset];
 
     void* ctx = rapi->rpgCreateContext();
-    rapi->rpgSetOption(RPGOPT_GEOTWOSIDEDPRV, 1);
 
     modelBone_t* noeBones = (header->numBones) ? bindBones(bones, header->numBones, rapi) : NULL;
 
@@ -50,7 +49,6 @@ noesisModel_t* loadKMS(BYTE* fileBuffer, int bufferLen, int& numMdl, noeRAPI_t* 
     KmsMesh*   mesh   = (KmsMesh* )&fileBuffer[0x40];
 
     void* ctx = rapi->rpgCreateContext();
-    rapi->rpgSetOption(RPGOPT_GEOTWOSIDEDPRV, 1);
 
     modelBone_t* noeBones = bindKMSBones(mesh, header->numMesh, rapi);
 

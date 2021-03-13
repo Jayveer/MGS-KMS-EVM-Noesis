@@ -6,15 +6,24 @@
 #include "noesis/plugin/pluginshare.h"
 
 inline
-void bindFace(int16_t* vertices, uint16_t fc, std::vector<uint16_t>& faceBuffer) {
+void bindFace(int16_t* vertices, uint16_t fc, std::vector<uint16_t>& faceBuffer, bool& flip) {
     if (vertices[3] & 0x8000) return;
 
     uint16_t fa = fc < 3 ? 0 : fc - 2;
     uint16_t fb = fc < 2 ? 0 : fc - 1;
 
-    faceBuffer.push_back(fa);
-    faceBuffer.push_back(fb);
-    faceBuffer.push_back(fc);
+    if (!flip) {
+        faceBuffer.push_back(fa);
+        faceBuffer.push_back(fb);
+        faceBuffer.push_back(fc);
+    }
+    else {
+        faceBuffer.push_back(fa);
+        faceBuffer.push_back(fc);
+        faceBuffer.push_back(fb);
+    }
+
+    flip = !flip;
 }
 
 inline
@@ -71,6 +80,11 @@ void setOrigin(KmsMesh* mesh, modelBone_t* noeBone, noeRAPI_t* rapi) {
 }
 
 inline
+void resetWinding(int16_t* index, bool& flip) {
+    if (index[3] & 0x8000) flip = 1;
+}
+
+inline
 void bindMesh(EvmVertexDefinition* vDef, BYTE* fileBuffer, noeRAPI_t* rapi, CArrayList<noesisMaterial_t*>& matList, CArrayList<noesisTex_t*>& texList) {
     std::vector<float>  vertexBuffer, normalBuffer, uvBuffer, uvBuffer2, uvBuffer3, weightBuffer;
     std::vector<uint16_t> faceBuffer;
@@ -85,16 +99,18 @@ void bindMesh(EvmVertexDefinition* vDef, BYTE* fileBuffer, noeRAPI_t* rapi, CArr
 
     float scale = 1.0f / 16.0f;
 
+    bool flip = 1;
     for (int i = 0; i < vDef->numVertex; i++) {
 
         if (vDef->vertexOffset) bindVertex(vertexIndex, vertexBuffer, scale);
-        if (vDef->vertexOffset) bindFace(vertexIndex, i, faceBuffer);
+        if (vDef->vertexOffset) bindFace(vertexIndex, i, faceBuffer, flip);
         if (vDef->normalOffset) bindNormal(normalIndex, normalBuffer);
 
         if (vDef->uvOffset)  bindUV(uvIndex, uvBuffer);
         if (vDef->uv2Offset) bindUV(uv2Index, uvBuffer2);
         if (vDef->uv3Offset) bindUV(uv3Index, uvBuffer3);
 
+        resetWinding(vertexIndex, flip);
         if (vDef->weightOffset) bindSkin(weightIndex, vDef->skinningTable, vDef->numSkin, weightBuffer, boneBuffer);
 
         uvIndex += 4;
@@ -121,7 +137,6 @@ void bindMesh(EvmVertexDefinition* vDef, BYTE* fileBuffer, noeRAPI_t* rapi, CArr
     rapi->rpgClearBufferBinds();
 }
 
-
 inline
 void bindKMSMesh(KmsMesh* mesh, modelBone_t* noeBone, int meshNum, BYTE* fileBuffer, noeRAPI_t* rapi, CArrayList<noesisMaterial_t*>& matList, CArrayList<noesisTex_t*>& texList) {
 
@@ -142,18 +157,20 @@ void bindKMSMesh(KmsMesh* mesh, modelBone_t* noeBone, int meshNum, BYTE* fileBuf
         int16_t* vertexIndex = (int16_t*)&fileBuffer[vDef[i].vertexOffset];
         int16_t* normalIndex = (int16_t*)&fileBuffer[vDef[i].normalOffset];
 
+        bool flip = 1;
         for (int j = 0; j < vDef[i].numVertex; j++) {
 
             bindVertex(vertexIndex, vertexBuffer, scale);
             bindNormal(normalIndex, normalBuffer);
-            bindFace(normalIndex, j, faceBuffer);
+            bindFace(normalIndex, j, faceBuffer, flip);
 
             if (vDef->uvOffset)  bindUV(uvIndex,  uvBuffer);
             if (vDef->uv2Offset) bindUV(uv2Index, uvBuffer2);
             if (vDef->uv3Offset) bindUV(uv3Index, uvBuffer3);
 
+            resetWinding(normalIndex, flip);
             bindKMSSkin(vertexIndex, mesh, meshNum, weightBuffer, boneBuffer);
-
+                        
             uvIndex  += 2;
             uv2Index += 2;
             uv3Index += 2;
